@@ -1,31 +1,56 @@
 import cv2
 import os
 
-video_path = 'video.mp4'
-output_folder = 'frames'
-os.makedirs(output_folder, exist_ok=True)
+# Videoların bulunduğu klasör
+videos_folder = 'videos'
 
-cap = cv2.VideoCapture(video_path)
+# Tüm video dosyalarını listele
+video_files = [f for f in os.listdir(videos_folder) if f.endswith('.mp4')]
 
-frame_count = 0
+# Her bir video dosyası için işlemleri sırayla yap
+for video_file in video_files:
+    # Video dosyasının tam yolu
+    video_path = os.path.join(videos_folder, video_file)
 
-saved_frame_count = 0
+    # Video adını dosya uzantısı olmadan al
+    video_name = os.path.splitext(os.path.basename(video_path))[0]
 
-while True:
-    ret, frame = cap.read()
+    # Videonun adıyla bir klasör oluştur
+    output_folder = video_name
+    os.makedirs(output_folder, exist_ok=True)
 
-    if not ret:
-        break
+    # Videoyu yükle
+    cap = cv2.VideoCapture(video_path)
 
-    if frame_count % 5 == 0:
-        frame_filename = os.path.join(output_folder, f'frame_{saved_frame_count:04d}.png')
+    # Frame numarasını takip etmek için sayaç
+    frame_count = 0
 
-        cv2.imwrite(frame_filename, frame)
+    # Kaydedilen frameleri takip etmek için sayaç
+    saved_frame_count = 0
 
-        saved_frame_count += 1
+    # Videodaki tüm frameleri oku ve kaydet
+    while True:
+        ret, frame = cap.read()
 
-    frame_count += 1
+        # Eğer video bitti ise, döngüyü sonlandır
+        if not ret:
+            break
 
-cap.release()
+        # Her 5 framede bir kaydet
+        if frame_count % 4 == 0:
+            # Frame dosya adı
+            frame_filename = os.path.join(output_folder, f'{video_name}_{saved_frame_count:04d}.png')
 
-print(f'Toplam {saved_frame_count} frame kaydedildi.')
+            # Frame'i kaydet
+            cv2.imwrite(frame_filename, frame)
+
+            # Kaydedilen frame sayısını arttır
+            saved_frame_count += 1
+
+        # Frame numarasını arttır
+        frame_count += 1
+
+    # Video kaynağını serbest bırak
+    cap.release()
+
+    print(f"Toplam {saved_frame_count} frame '{output_folder}' klasörüne kaydedildi.")
